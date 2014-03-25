@@ -6,14 +6,13 @@
 #   Andrew Groot
 
 # TODO:
-#  Trash
-#  Moving (Check for the file!)
 #  Undo History
-# ?Handling large numbers of directories
+#  Handling large numbers of directories
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import subprocess
+import shutil # for file operations
 import sys
 import os
 
@@ -34,8 +33,8 @@ class Pixort(QMainWindow):
         self.setWindowTitle("Pixort")
         self.setMinimumWidth(800)
         
-        # config file
-        f = open(os.path.expanduser("~/.pixort"), "r")
+        # config file        
+        f = open(os.path.expanduser("~/.pixortrc"), "r")
         
         # unsorted directory
         self.unsorted = os.path.expanduser(f.readline().strip())
@@ -52,7 +51,7 @@ class Pixort(QMainWindow):
         f = [i.strip() for i in f.readlines()]
         while len(f) > 0:
             d = f.pop(0)
-            files = []  # "files" is actually the set of directories with "d"
+            files = []  # "files" is the set of directories within "d"
             while len(f) > 0:
                 if f[0] != "":
                     files.append(f.pop(0))
@@ -62,7 +61,10 @@ class Pixort(QMainWindow):
                     break
             # store dir/files
             self.dirs.append((d, files))
-            
+        
+        # undo history
+        self.moved = []
+        
         self.main_frame = QWidget()
         self.__create_main()
         
@@ -162,9 +164,34 @@ class Pixort(QMainWindow):
        subprocess.call([BROWSER, self.file])
     
     def __move(self, d):
-        print("Moving " + self.file + "\n\t to " + d + self.save_as.text() + self.extention.text())
-        self.file = self.files[0][0]     # get full path
-        self.name = self.files.pop(0)[1] # get name and remove
+        dest = os.path.expanduser(d + self.save_as.text() + self.extention.text())
+        print("Moving " + self.file + "\n\t to " + dest)
+
+        reply = QMessageBox.Yes
+        if os.path.exists(dest):
+            # file exists, check for overwrite
+            reply = QMessageBox.question(self, 'Warning!', 'Destination file already exists, overwrite?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            # move file
+            shutil.move(self.file, dest)
+            # save file for undoing
+            self.moved.insert(0, (self.file, self.name, dest) )
+            # get next file
+            self.file = self.files[0][0]     # get full path
+            self.name = self.files.pop(0)[1] # get name and remove
+            self.__draw_image()
+            self.__update_info()
+    
+    def __undo(self, d):
+        src = self.moved[0][0]      # get source location
+        name = self.move[0][1]      # get orignal name
+        curr = self.moved.pop(0)[2] # get current location
+        # move back and reset
+        shutil.move(curr, src)
+        self.files.insert(0, (self.file, self.name) )
+        self.file = src
+        self.name = name
         self.__draw_image()
         self.__update_info()
     
