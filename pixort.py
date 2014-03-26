@@ -7,6 +7,7 @@
 
 # TODO:
 #  Undo History
+#  Delete button
 #  Handling large numbers of directories
 
 from PyQt4.QtCore import *
@@ -203,7 +204,7 @@ class Pixort(QMainWindow):
         self.__draw_image()
         self.__update_info()
     
-    def __delete(self, d):
+    def __delete(self):
         self.__move(TRASH_LOCATION)
 
 
