@@ -83,8 +83,8 @@ class Pixort(QMainWindow):
         
         ### left column
         # picture display
-        self.image = QPixmap(self.file)
         self.scene = QGraphicsScene()
+        self.image = QPixmap(self.file)
         self.scene.addPixmap(self.image)
         self.view = QGraphicsView()
         self.view.setScene(self.scene)
@@ -208,4 +208,5 @@ if __name__ == "__main__":
     window = Pixort()
     window.show()
     app.exec_()
+    sys.exit()
 
