@@ -33,34 +33,38 @@ class Pixort(QMainWindow):
         self.setWindowTitle("Pixort")
         self.setMinimumWidth(800)
         
-        # config file        
-        f = open(os.path.expanduser("~/.pixortrc"), "r")
-        
-        # unsorted directory
-        self.unsorted = os.path.expanduser(f.readline().strip())
-        self.files = sorted([(os.path.expanduser(self.unsorted + i), i) \
-                                for i in os.listdir(self.unsorted) \
-                                if os.path.isfile(os.path.expanduser(self.unsorted + i))])
-        self.file = self.files[0][0]     # get full path
-        self.name = self.files.pop(0)[1] # get name and remove
-        # new line
-        f.readline()
-        
-        # get directories
-        self.dirs = []
-        f = [i.strip() for i in f.readlines()]
-        while len(f) > 0:
-            d = f.pop(0)
-            files = []  # "files" is the set of directories within "d"
+        # config file
+        try:
+            f = open(os.path.expanduser("~/.pixortrc"), "r")
+            
+            # unsorted directory
+            self.unsorted = os.path.expanduser(f.readline().strip())
+            self.files = sorted([(os.path.expanduser(self.unsorted + i), i) \
+                                    for i in os.listdir(self.unsorted) \
+                                    if os.path.isfile(os.path.expanduser(self.unsorted + i))])
+            self.file = self.files[0][0]     # get full path
+            self.name = self.files.pop(0)[1] # get name and remove
+            # new line
+            f.readline()
+            
+            # get directories
+            self.dirs = []
+            f = [i.strip() for i in f.readlines()]
             while len(f) > 0:
-                if f[0] != "":
-                    files.append(f.pop(0))
-                else:
-                    # get rid of empty string
-                    f.pop(0)
-                    break
-            # store dir/files
-            self.dirs.append((d, files))
+                d = f.pop(0)
+                files = []  # "files" is the set of directories within "d"
+                while len(f) > 0:
+                    if f[0] != "":
+                        files.append(f.pop(0))
+                    else:
+                        # get rid of empty string
+                        f.pop(0)
+                        break
+                # store dir/files
+                self.dirs.append((d, files))
+        except:
+            print("ERROR: No ~/.pixortrc found.  Please create one to continue.")
+            sys.exit()
         
         # undo history
         self.moved = []
