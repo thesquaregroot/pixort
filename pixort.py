@@ -131,7 +131,7 @@ class Pixort(QMainWindow):
         self.nav.addLayout(horiz)
         
         self.__update_info()
-
+        
         # make buttons for each of the possible destination directories
         for d,files in sorted(self.dirs):
             group = QGroupBox(d)
@@ -158,7 +158,7 @@ class Pixort(QMainWindow):
         self.scene.setSceneRect(0.0, 0.0, float(self.image.width()), float(self.image.height()))
     
     def __update_info(self):
-        self.file_name.setText(self.file) 
+        self.file_name.setText(self.file)
         self.save_as.setText(self.name[:self.name.find('.')])
         self.extention.setText(self.name[self.name.find('.'):])
         self.save_as.selectAll()
@@ -169,18 +169,19 @@ class Pixort(QMainWindow):
        subprocess.call([BROWSER, self.file])
     
     def __move(self, d):
-        if not os.path.isdir(d):
-            QMessageBox.warning(self, 'Invalid directory.', d + ' is not a valid directory.')
+        dest_dir = os.path.expanduser(d)
+        if not os.path.isdir(dest_dir):
+            QMessageBox.warning(self, 'Invalid directory.', dest_dir + ' is not a valid directory.')
             return
         
-        dest = os.path.expanduser(str(d + self.save_as.text() + self.extention.text()))
+        dest = dest_dir + str(self.save_as.text() + self.extention.text())
         print("Moving " + self.file + "\n\t to " + dest)
-
+        
         reply = QMessageBox.Yes
         if os.path.exists(dest):
             # file exists, check for overwrite
             reply = QMessageBox.question(self, 'Warning!', 'Destination file already exists, overwrite?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
+        
         if reply == QMessageBox.Yes:
             # move file
             shutil.move(self.file, dest)
