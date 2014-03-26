@@ -168,7 +168,11 @@ class Pixort(QMainWindow):
        subprocess.call([BROWSER, self.file])
     
     def __move(self, d):
-        dest = os.path.expanduser(d + self.save_as.text() + self.extention.text())
+        if not os.path.isdir(d):
+            QMessageBox.warning(self, 'Invalid directory.', d + ' is not a valid directory.')
+            return
+        
+        dest = os.path.expanduser(str(d + self.save_as.text() + self.extention.text()))
         print("Moving " + self.file + "\n\t to " + dest)
 
         reply = QMessageBox.Yes
