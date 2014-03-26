@@ -216,6 +216,9 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = Pixort()
     window.show()
-    app.exec_()
-    sys.exit()
+    # run app, get return value
+    retval = app.exec_()
+    # clean up memory and return
+    app.deleteLater()
+    sys.exit(retval)
 
