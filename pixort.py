@@ -63,8 +63,11 @@ class Pixort(QMainWindow):
                         break
                 # store dir/files
                 self.dirs.append((d, files))
+        except FileNotFoundError:
+            QMessageBox.critical(self, 'Create ~/.pixortrc', 'No ~/.pixortrc found.  Please create one to continue.')
+            sys.exit()
         except:
-            print("ERROR: No ~/.pixortrc found.  Please create one to continue.")
+            QMessageBox.critical(self, 'Invalid configuration', 'Invalid pixortrc.')
             sys.exit()
         
         # undo history
