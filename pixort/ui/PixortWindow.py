@@ -158,7 +158,7 @@ class PixortWindow(QMainWindow):
             # save file for undoing
             self.move_history.insert(0, (self.current_file, self.current_name, dest) )
             # get next file
-            next_file = self.__get_next_file(self)
+            next_file = self.__get_next_file()
             self.current_file = next_file[0] # get full path
             self.current_name = next_file[1] # get name
             self.__draw_image()

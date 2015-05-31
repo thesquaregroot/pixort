@@ -1,5 +1,6 @@
 
 from PyQt4.QtGui import *
+from PyQt4.QtCore import SIGNAL
 
 """
 Represents a button that stores
