@@ -34,7 +34,7 @@ class Configuration:
     def get_browser_path(self):
         return self.browser_path
     
-    def get_trash_path():
+    def get_trash_path(self):
         return self.trash_path
     
     def __load_config(self):

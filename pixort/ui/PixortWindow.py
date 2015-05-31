@@ -88,17 +88,34 @@ class PixortWindow(QMainWindow):
         
         ### right column
         self.right = QWidget()
-        self.right.setMaximumWidth(200)
+        self.right.setMaximumWidth(250)
         self.nav = QVBoxLayout()
+        self.nav.setAlignment(Qt.AlignTop)
         self.right.setLayout(self.nav)
         ## file name & extension
         self.save_as = QLineEdit(self.current_name[:self.current_name.find('.')])
         self.extention = QLabel(self.current_name[self.current_name.find('.'):])
         # arrange
-        horiz = QHBoxLayout()
-        horiz.addWidget(self.save_as)
-        horiz.addWidget(self.extention)
-        self.nav.addLayout(horiz)
+        name_container = QHBoxLayout()
+        name_container.addWidget(self.save_as)
+        name_container.addWidget(self.extention)
+        self.nav.addLayout(name_container)
+        ## delete button
+        delete_container = QHBoxLayout()
+        self.delete_button = QPushButton("Delete \u232B")
+        self.delete_button.setStyleSheet("QPushButton { color: red; }")
+        self.connect(self.delete_button, SIGNAL("clicked()"), self.__delete)
+        # set up
+        delete_container.addWidget(self.delete_button)
+        self.nav.addLayout(delete_container)
+
+        ## separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.nav.addSpacing(10)
+        self.nav.addWidget(separator)
+        self.nav.addSpacing(10)
         
         self.__update_info()
         
