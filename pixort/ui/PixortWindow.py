@@ -121,14 +121,20 @@ class PixortWindow(QMainWindow):
         name_container.addWidget(self.save_as)
         name_container.addWidget(self.extention)
         self.nav.addLayout(name_container)
-        ## delete button
-        delete_container = QHBoxLayout()
+        ## non-move actions
+        action_container = QHBoxLayout()
+        # undo
+        self.undo_button = QPushButton("Undo \u21BA")
+        self.undo_button.setStyleSheet("QPushButton { color: blue; }")
+        self.connect(self.undo_button, SIGNAL("clicked()"), self.__undo)
+        # delete
         self.delete_button = QPushButton("Delete \u232B")
         self.delete_button.setStyleSheet("QPushButton { color: red; }")
         self.connect(self.delete_button, SIGNAL("clicked()"), self.__delete)
         # set up
-        delete_container.addWidget(self.delete_button)
-        self.nav.addLayout(delete_container)
+        action_container.addWidget(self.undo_button)
+        action_container.addWidget(self.delete_button)
+        self.nav.addLayout(action_container)
 
         ## separator
         separator = QFrame()
@@ -176,6 +182,7 @@ class PixortWindow(QMainWindow):
         self.animated_flag.setVisible(self.image_util.is_animated(self.current_file))
         # check for wallpaper
         self.wallpaper_flag.setVisible(self.image_util.is_wallpaper(self.current_file))
+        self.undo_button.setEnabled(len(self.move_history) > 0)
     
     def __browser(self):
        subprocess.call([self.config.get_browser_path(), self.current_file])
@@ -187,7 +194,7 @@ class PixortWindow(QMainWindow):
             return
         
         dest = dest_dir + str(self.save_as.text() + self.extention.text())
-        print("Moving " + self.current_file + "\n\t to " + dest)
+        print("Moving", self.current_file, "\n\t to", dest)
         
         reply = QMessageBox.Yes
         if os.path.exists(dest):
@@ -228,18 +235,19 @@ class PixortWindow(QMainWindow):
     def __put_back_file(self, path, name):
         self.files.insert(0, (path, name))
     
-    def __undo(self, d):
+    def __undo(self):
         prev_file = self.move_history.pop(0)
         src     = prev_file[0] # get source location
         name    = prev_file[1] # get original name
         curr    = prev_file[2] # get current location
         # move back and reset
         shutil.move(curr, src)
-        self.__put_back_file(self, self.current_file, self.current_name)
+        self.__put_back_file(self.current_file, self.current_name)
         self.current_file = src
         self.current_name = name
         self.__draw_image()
         self.__update_info()
+        print("Undoing move to", curr, "\n\tfrom", src)
     
     def __delete(self):
         self.__move(self.config.get_trash_path())
