@@ -61,10 +61,9 @@ class PixortWindow(QMainWindow):
         ### left column
         # picture display
         self.scene = QGraphicsScene()
+        self.view = QGraphicsView(self.scene)
         self.image = QPixmap(self.current_file)
         self.scene.addPixmap(self.image)
-        self.view = QGraphicsView()
-        self.view.setScene(self.scene)
         
         self.__draw_image()
         
@@ -96,13 +95,17 @@ class PixortWindow(QMainWindow):
         # wallpaper flag
         self.wallpaper_flag = QLabel("Potential Wallpaper")
         self.wallpaper_flag.setStyleSheet("QLabel { border: 2px solid green; color: green; text-align: center; }")
+        # shrunk flag
+        self.shrunk_flag = QLabel("Shrunk Image")
+        self.shrunk_flag.setStyleSheet("QLabel { border: 2px solid blue; color: blue; text-align: center; }")
         # layout
         flags = QHBoxLayout()
         flags.addWidget(self.animated_flag)
         flags.addWidget(self.wallpaper_flag)
+        flags.addWidget(self.shrunk_flag)
 
         flags_box.setLayout(flags)
-        info.addWidget(flags_box)
+        info.addWidget(flags_box, 2, 0, 1, 4)
         
         self.info_box.setLayout(info)
         self.img_box.addWidget(self.info_box)
@@ -164,12 +167,18 @@ class PixortWindow(QMainWindow):
         
         self.main_frame.setLayout(layout)
     
+    def resizeEvent(self, event):
+        super(PixortWindow, self).resizeEvent(event)
+        self.__draw_image()
+        self.__update_info()
+
     def __draw_image(self):
         # load image
         self.image.load(self.current_file)
         self.scene.clear()
-        self.scene.addPixmap(self.image)
         self.scene.setSceneRect(0.0, 0.0, float(self.image.width()), float(self.image.height()))
+        self.scene.addPixmap(self.image)
+        self.__fit_image()
     
     def __update_info(self):
         self.file_name.setText(self.current_file)
@@ -183,6 +192,8 @@ class PixortWindow(QMainWindow):
         # check for wallpaper
         self.wallpaper_flag.setVisible(self.image_util.is_wallpaper(self.current_file))
         self.undo_button.setEnabled(len(self.move_history) > 0)
+        # check for shrunk
+        self.shrunk_flag.setVisible(self.__image_too_large())
     
     def __browser(self):
        subprocess.call([self.config.get_browser_path(), self.current_file])
@@ -251,4 +262,13 @@ class PixortWindow(QMainWindow):
     
     def __delete(self):
         self.__move(self.config.get_trash_path())
+
+    def __image_too_large(self):
+        return self.view.geometry().width() < self.image.width() \
+            or self.view.geometry().height() < self.image.height()
+
+    def __fit_image(self):
+        scene_rect = self.scene.sceneRect()
+        if self.__image_too_large():
+            self.view.fitInView(scene_rect, Qt.KeepAspectRatio)
 
