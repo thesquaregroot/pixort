@@ -1,6 +1,7 @@
 
 from .MoveButton import MoveButton
 from pixort.config import Configuration
+from pixort.util import ImageUtil
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import subprocess # for opening browser
@@ -25,9 +26,14 @@ class PixortWindow(QMainWindow):
         # config file
         try:
             self.config = Configuration()
+            # image util
+            self.image_util = ImageUtil(self.config)
             # get list of normal files within unsorted directory
             self.__load_unsorted_files()
             first_file = self.__get_next_file()
+            if first_file is None:
+                QMessageBox.information(self, 'No images to sort.', 'There are no images to sort.')
+                sys.exit()
             self.current_file = first_file[0]
             self.current_name = first_file[1]
         except FileNotFoundError as e:
@@ -82,10 +88,25 @@ class PixortWindow(QMainWindow):
         self.browser = QPushButton("Open in Browser")
         self.connect(self.browser, SIGNAL("clicked()"), self.__browser)
         info.addWidget(self.browser, 0, 2, 2, 2)
+
+        flags_box = QWidget()
+        # animated flag
+        self.animated_flag = QLabel("Animated File")
+        self.animated_flag.setStyleSheet("QLabel { border: 2px solid purple; color: purple; text-align: center; }")
+        # wallpaper flag
+        self.wallpaper_flag = QLabel("Potential Wallpaper")
+        self.wallpaper_flag.setStyleSheet("QLabel { border: 2px solid green; color: green; text-align: center; }")
+        # layout
+        flags = QHBoxLayout()
+        flags.addWidget(self.animated_flag)
+        flags.addWidget(self.wallpaper_flag)
+
+        flags_box.setLayout(flags)
+        info.addWidget(flags_box)
         
         self.info_box.setLayout(info)
         self.img_box.addWidget(self.info_box)
-        
+
         ### right column
         self.right = QWidget()
         self.right.setMaximumWidth(250)
@@ -151,6 +172,10 @@ class PixortWindow(QMainWindow):
         self.save_as.selectAll()
         self.save_as.setFocus()
         self.dim.setText(str(self.image.width()) + "x" + str(self.image.height()))
+        # check for animated
+        self.animated_flag.setVisible(self.image_util.is_animated(self.current_file))
+        # check for wallpaper
+        self.wallpaper_flag.setVisible(self.image_util.is_wallpaper(self.current_file))
     
     def __browser(self):
        subprocess.call([self.config.get_browser_path(), self.current_file])
@@ -176,6 +201,9 @@ class PixortWindow(QMainWindow):
             self.move_history.insert(0, (self.current_file, self.current_name, dest) )
             # get next file
             next_file = self.__get_next_file()
+            if next_file is None:
+                QMessageBox.information(self, 'Nothing to sort!', 'All files are sorted.')
+                sys.exit()
             self.current_file = next_file[0] # get full path
             self.current_name = next_file[1] # get name
             self.__draw_image()
@@ -188,7 +216,14 @@ class PixortWindow(QMainWindow):
                                 if os.path.isfile(os.path.expanduser(unsorted_directory + file))])
 
     def __get_next_file(self):
-        return self.files.pop(0)
+        if len(self.files) == 0:
+            return None
+        file = self.files.pop(0)
+        if self.image_util.is_image(file[0]):
+            return file
+        else:
+            print("Skipping", file[0], "as it is not an image.")
+            return self.__get_next_file()
     
     def __put_back_file(self, path, name):
         self.files.insert(0, (path, name))
