@@ -84,10 +84,6 @@ class PixortWindow(QMainWindow):
         info.addWidget(QLabel("Dimensions: "), 1, 0)
         info.addWidget(self.dim, 1, 1)
         
-        self.browser = QPushButton("Open in Browser")
-        self.connect(self.browser, SIGNAL("clicked()"), self.__browser)
-        info.addWidget(self.browser, 0, 2, 2, 2)
-
         flags_box = QWidget()
         # animated flag
         self.animated_flag = QLabel("Animated File")
@@ -105,7 +101,7 @@ class PixortWindow(QMainWindow):
         flags.addWidget(self.shrunk_flag)
 
         flags_box.setLayout(flags)
-        info.addWidget(flags_box, 2, 0, 1, 4)
+        info.addWidget(flags_box, 2, 0, 1, 2)
         
         self.info_box.setLayout(info)
         self.img_box.addWidget(self.info_box)
@@ -138,6 +134,12 @@ class PixortWindow(QMainWindow):
         action_container.addWidget(self.undo_button)
         action_container.addWidget(self.delete_button)
         self.nav.addLayout(action_container)
+        
+        # open in browser button
+        self.browser = QPushButton("Open in Browser")
+        self.browser.setStyleSheet("QPushButton { color: green; }")
+        self.connect(self.browser, SIGNAL("clicked()"), self.__browser)
+        self.nav.addWidget(self.browser)
 
         ## separator
         separator = QFrame()
@@ -169,14 +171,13 @@ class PixortWindow(QMainWindow):
     
     def resizeEvent(self, event):
         super(PixortWindow, self).resizeEvent(event)
-        self.__draw_image()
+        self.__fit_image()
         self.__update_info()
 
     def __draw_image(self):
         # load image
         self.image.load(self.current_file)
         self.scene.clear()
-        self.scene.setSceneRect(0.0, 0.0, float(self.image.width()), float(self.image.height()))
         self.scene.addPixmap(self.image)
         self.__fit_image()
     
@@ -194,6 +195,8 @@ class PixortWindow(QMainWindow):
         self.undo_button.setEnabled(len(self.move_history) > 0)
         # check for shrunk
         self.shrunk_flag.setVisible(self.__image_too_large())
+        # make sure image fits, flags may have shrunk viewport
+        self.__fit_image()
     
     def __browser(self):
        subprocess.call([self.config.get_browser_path(), self.current_file])
@@ -220,7 +223,7 @@ class PixortWindow(QMainWindow):
             # get next file
             next_file = self.__get_next_file()
             if next_file is None:
-                QMessageBox.information(self, 'Nothing to sort!', 'All files are sorted.')
+                QMessageBox.information(self, 'Nothing to sort!', 'All files are sorted!')
                 sys.exit()
             self.current_file = next_file[0] # get full path
             self.current_name = next_file[1] # get name
@@ -268,7 +271,10 @@ class PixortWindow(QMainWindow):
             or self.view.geometry().height() < self.image.height()
 
     def __fit_image(self):
+        self.scene.setSceneRect(0.0, 0.0, float(self.image.width()), float(self.image.height()))
         scene_rect = self.scene.sceneRect()
         if self.__image_too_large():
             self.view.fitInView(scene_rect, Qt.KeepAspectRatio)
+        else:
+            self.view.fitInView(QRectF(0.0, 0.0, self.view.geometry().width(), self.view.geometry().height()), Qt.KeepAspectRatio)
 
