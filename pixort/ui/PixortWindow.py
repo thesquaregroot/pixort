@@ -84,10 +84,6 @@ class PixortWindow(QMainWindow):
         info.addWidget(QLabel("Dimensions: "), 1, 0)
         info.addWidget(self.dim, 1, 1)
         
-        self.browser = QPushButton("Open in Browser")
-        self.connect(self.browser, SIGNAL("clicked()"), self.__browser)
-        info.addWidget(self.browser, 0, 2, 2, 2)
-
         flags_box = QWidget()
         # animated flag
         self.animated_flag = QLabel("Animated File")
@@ -105,7 +101,7 @@ class PixortWindow(QMainWindow):
         flags.addWidget(self.shrunk_flag)
 
         flags_box.setLayout(flags)
-        info.addWidget(flags_box, 2, 0, 1, 4)
+        info.addWidget(flags_box, 2, 0, 1, 2)
         
         self.info_box.setLayout(info)
         self.img_box.addWidget(self.info_box)
@@ -138,6 +134,12 @@ class PixortWindow(QMainWindow):
         action_container.addWidget(self.undo_button)
         action_container.addWidget(self.delete_button)
         self.nav.addLayout(action_container)
+        
+        # open in browser button
+        self.browser = QPushButton("Open in Browser")
+        self.browser.setStyleSheet("QPushButton { color: green; }")
+        self.connect(self.browser, SIGNAL("clicked()"), self.__browser)
+        self.nav.addWidget(self.browser)
 
         ## separator
         separator = QFrame()
