@@ -178,7 +178,10 @@ class PixortWindow(QMainWindow):
         # load image
         self.image.load(self.current_file)
         self.scene.clear()
-        self.scene.addPixmap(self.image)
+        if self.image_util.is_animated(self.current_file):
+            self.scene.addWidget(self.image_util.get_animation(self.current_file))
+        else:
+            self.scene.addPixmap(self.image)
         self.__fit_image()
     
     def __update_info(self):
