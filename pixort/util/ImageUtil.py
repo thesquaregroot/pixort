@@ -1,5 +1,7 @@
 
 from pixort.config import Configuration
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from PIL import Image
 
 class ImageUtil:
@@ -23,6 +25,13 @@ class ImageUtil:
             is_animated = True
         img.seek(0)
         return is_animated
+
+    def get_animation(self, file):
+        movie_container = QLabel()
+        animation = QMovie(file)
+        movie_container.setMovie(animation)
+        animation.start()
+        return movie_container
 
     def is_wallpaper(self, file):
         img = Image.open(file)
