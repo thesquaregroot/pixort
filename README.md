@@ -11,7 +11,8 @@ Finished Features
 * Rename file on move
 * Delete file button
 * Undo move/delete button
-* Button to open file in browser (useful for animated gifs)
+* Button to open file in browser
 * Flag for animated files
 * Flag for possible wallpapers (based on size and aspect ratio)
+* Animated files automatically animated in the viewer
 
